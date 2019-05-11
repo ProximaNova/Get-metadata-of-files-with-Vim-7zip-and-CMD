@@ -1,4 +1,5 @@
 # Get metadata of files with Vim, 7zip, and CMD
+
 I don't know if this has been done before; I feel like the answer is "no". I looked up "Get metadata with Vim, 7zip, and CMD" on Google and found nothing. Why does 7zip not support MD5?
 
 (Click the "Raw" button on this web page to enable word wrapping.)
@@ -56,6 +57,8 @@ Then run
 Step 2. Get the unformated metadata (see Appendix A)
 
 Open CMD and run "cls"
+
+Go to the directory with the files that you want to get meta data on, run "cd C:\path\to\the\files"
 
 Copy and paste all of those Step 1 commands into CMD to run them.
 
