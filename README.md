@@ -68,106 +68,11 @@ Press Ctrl+A
 
 Paste the unformatted metadata into Vim then run the command in Step 3.
 
-Ignore this part if you don't care about how the Vim command works.
-&darr;
-
-(Not needed:
-:%s/.:\\.*7z" h -scrcsha256 \(.*\n\)\{15}//g
-That was used for something else.)
-
-(Simple model:
-
-unique1                    unique2                                   unique3    unique4   unique5   unique6    unique7                    unique8
-unique9                    unique10                                  unique11   unique12  unique13  unique14   unique15                   unique16
-
-:%s/\(unique1\)\s\+\(unique2\)\s\+\(unique3\)\s\+\(unique4\)\s\+\(unique5\)\s\+\(unique6\)\s\+\(unique7\)\s\+\(unique8\)\s*/\1\r\2\r\3\r\4\r\5\r\6\r\7\r\8/g
-
-unique1
-unique2
-unique3
-unique4
-unique5
-unique6
-unique7
-unique8
-unique9                    unique10                                  unique11   unique12  unique13  unique14   unique15                   unique16
-
-:%s/\n\(.*\n.*\n.*\n.*\n.*\n.*\n.*\n\)\(unique9\)/\2\r\1/g | %s/\n\(.*\n.*\n.*\n.*\n.*\n.*\n\).*\(unique10\)/\2\r\1/g | %s/\n\(.*\n.*\n.*\n.*\n.*\n\).*\(unique11\)/\2\r\1/g | %s/\n\(.*\n.*\n.*\n.*\n\).*\(unique12\)/\2\r\1/g | %s/\n\(.*\n.*\n.*\n\).*\(unique13\)/\2\r\1/g | %s/\n\(.*\n.*\n\).*\(unique14\)/\2\r\1/g | %s/\n\(.*\n\).*\(unique15\)/\2\r\1/g | %s/\n.*\(unique16\)/\1/g
-
-unique1 unique9
-unique2 unique10
-unique3 unique11
-unique4 unique12
-unique5 unique13
-unique6 unique14
-unique7 unique15
-unique8 unique16
-
-Which correlates to the following.)
-
-CreationDate               EightDotThreeFileName               Extension  FileName   FileSize  FileType              LastAccessed               LastModified
-YYYYMMDDHHMMSS.######+***  c:\path\to\the\files\filename#.ext  ext        filename#  ####      [letters or 1 space]  YYYYMMDDHHMMSS.######+***  YYYYMMDDHHMMSS.######
-
-:%s/\(CreationDate\)\s\+\(EightDotThreeFileName\)\s\+\(Extension\)\s\+\(FileName\)\s\+\(FileSize\)\s\+\(FileType\)\s\+\(LastAccessed\)\s\+\(LastModified\)\s*/\1\r\2\r\3\r\4\r\5\r\6\r\7\r\8/g
-
-CreationDate
-EightDotThreeFileName
-Extension
-FileName
-FileSize
-FileType
-LastAccessed
-LastModified
-YYYYMMDDHHMMSS.######+***  c:\path\to\the\files\filename#.ext  ext        filename#  ####      [letters or 1 space]  YYYYMMDDHHMMSS.######+***  YYYYMMDDHHMMSS.######
-
-:%s/\n\(.*\n.*\n.*\n.*\n.*\n.*\n.*\n\)\(\S\+ \S\+\|\S\+\)/: \2\r\1/g | %s/\n\(.*\n.*\n.*\n.*\n.*\n.*\n\)\s\{2,}.\+\\\(\S\+ \S\+\|\S\+\)/: \2\r\1/g | %s/\n\(.*\n.*\n.*\n.*\n.*\n\)\s\{2,}\(\S\+ \S\+\|\S\+\)/: \2\r\1/g | %s/\n\(.*\n.*\n.*\n.*\n\)\s\{2,}\(\S\+ \S\+\|\S\+\)/: \2\r\1/g | %s/\n\(.*\n.*\n.*\n\)\s\{2,}\(\S\+ \S\+\|\S\+\)/: \2\r\1/g | %s/\n\(.*\n.*\n\)\s\{2,}\(\S\+ \S\+\|\S\+\)/: \2\r\1/g | %s/\n\(.*\n\)\s\{2,}\(\S\+ \S\+\|\S\+\)/: \2\r\1/g | %s/\n\s\{2,}\(\S\+ \S\+\|\S\+\)/: \1/g
-
-CreationDate: YYYYMMDDHHMMSS.######+***
-EightDotThreeFileName: filename#.ext
-Extension: ext
-FileName: filename#
-FileSize: ####
-FileType: [letters or 1 space character]
-LastAccessed: YYYYMMDDHHMMSS.######+***
-LastModified: YYYYMMDDHHMMSS.######
-
-^
-sorta
-v
-
-CreationDate               EightDotThreeFileName               Extension  FileName   FileSize  FileType              LastAccessed               LastModified
-YYYYMMDDHHMMSS.######+***  c:\path\to\the\files\filename#.ext  ext        filename#  ####      [letters or 1 space]  YYYYMMDDHHMMSS.######+***  YYYYMMDDHHMMSS.######
-
-:%s/\(CreationDate\)\s\+\(EightDotThreeFileName\)\s\+\(Extension\)\s\+\(FileName\)\s\+\(FileSize\)\s\+\(FileType\)\s\+\(LastAccessed\)\s\+\(LastModified\)\s*/\1\r\2\r\3\r\4\r\5\r\6\r\7\r\8/g | %s/CreationDate\n\(.*\n.*\n.*\n.*\n.*\n.*\n.*\n\)\(\S\+ \S\+\|\S\+\)/CreationDate: \2\r\1/g | %s/EightDotThreeFileName\n\(.*\n.*\n.*\n.*\n.*\n.*\n\)\s\{2,}.\+\\\(\S\+ \S\+\|\S\+\)/EightDotThreeFileName: \2\r\1/g | %s/Extension\n\(.*\n.*\n.*\n.*\n.*\n\)\s\{2,}\(\S\+ \S\+\|\S\+\)/Extension: \2\r\1/g | %s/FileName\n\(.*\n.*\n.*\n.*\n\)\s\{2,}\(\S\+ \S\+\|\S\+\)/FileName: \2\r\1/g | %s/FileSize\n\(.*\n.*\n.*\n\)\s\{2,}\(\S\+ \S\+\|\S\+\)/FileSize: \2\r\1/g | %s/FileType\n\(.*\n.*\n\)\s\{2,}\(\S\+ \S\+\|\S\+\)/FileType: \2\r\1/g | %s/LastAccessed\n\(.*\n\)\s\{2,}\(\S\+ \S\+\|\S\+\)/LastAccessed: \2\r\1/g | %s/LastModified\n\s\{2,}\(\S\+ \S\+\|\S\+\)/LastModified: \1/g
-
-CreationDate: YYYYMMDDHHMMSS.######+***
-EightDotThreeFileName: filename#.ext
-Extension: ext
-FileName: filename#
-FileSize: ####
-FileType: [letters or 1 space character]
-LastAccessed: YYYYMMDDHHMMSS.######+***
-LastModified: YYYYMMDDHHMMSS.######
-
-delete other crap
-v
-
-:%s/\(.*\n\)\{2}.*>.* h -scrcsha256\(.*\n\)\{15}//g
-:%s/.*>wmic datafile where Name=.*\\/Filename: /g
-:%s/" get CreationDate,E.*//g
-:%s/\nEverything is Ok\n\n.*>$//g
-:%s/\n\nEverything is Ok$//g
-
-^
-combined
-v
-
-&uarr;
-Ignore this part if you don't care about how the Vim command works.
-
 Step 3. (referenced above) Format metadata
 
 :%s/\(CreationDate\)\s\+\(EightDotThreeFileName\)\s\+\(Extension\)\s\+\(FileName\)\s\+\(FileSize\)\s\+\(FileType\)\s\+\(LastAccessed\)\s\+\(LastModified\)\s*/\1\r\2\r\3\r\4\r\5\r\6\r\7\r\8/g | %s/CreationDate\n\(.*\n.*\n.*\n.*\n.*\n.*\n.*\n\)\(\S\+ \S\+\|\S\+\)/CreationDate: \2\r\1/g | %s/EightDotThreeFileName\n\(.*\n.*\n.*\n.*\n.*\n.*\n\)\s\{2,}.\+\\\(\S\+ \S\+\|\S\+\)/EightDotThreeFileName: \2\r\1/g | %s/Extension\n\(.*\n.*\n.*\n.*\n.*\n\)\s\{2,}\(\S\+ \S\+\|\S\+\)/Extension: \2\r\1/g | %s/FileName\n\(.*\n.*\n.*\n.*\n\)\s\{2,}\(\S\+ \S\+\|\S\+\)/FileName: \2\r\1/g | %s/FileSize\n\(.*\n.*\n.*\n\)\s\{2,}\(\S\+ \S\+\|\S\+\)/FileSize: \2\r\1/g | %s/FileType\n\(.*\n.*\n\)\s\{2,}\(\S\+ \S\+\|\S\+\)/FileType: \2\r\1/g | %s/LastAccessed\n\(.*\n\)\s\{2,}\(\S\+ \S\+\|\S\+\)/LastAccessed: \2\r\1/g | %s/LastModified\n\s\{2,}\(\S\+ \S\+\|\S\+\)/LastModified: \1/g | %s/\(.*\n\)\{2}.*>.* h -scrcsha256\(.*\n\)\{15}//g | %s/.*>wmic datafile where Name=.*\\/Filename: /g | %s/" get CreationDate,E.*//g | %s/\nEverything is Ok\n\n.*>$//g | %s/\n\nEverything is Ok$//g
+
+(See Appendix B for some info on this command.)
 
 ^
 works with output of
@@ -248,4 +153,99 @@ Size: ######
 SHA256 for data:              0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF
 
 Everything is Ok
+
+Appendix B. (referenced above) How the Vim command works
+
+(Not needed:
+:%s/.:\\.*7z" h -scrcsha256 \(.*\n\)\{15}//g
+That was used for something else.)
+
+Simple model:
+
+unique1                    unique2                                   unique3    unique4   unique5   unique6    unique7                    unique8
+unique9                    unique10                                  unique11   unique12  unique13  unique14   unique15                   unique16
+
+:%s/\(unique1\)\s\+\(unique2\)\s\+\(unique3\)\s\+\(unique4\)\s\+\(unique5\)\s\+\(unique6\)\s\+\(unique7\)\s\+\(unique8\)\s*/\1\r\2\r\3\r\4\r\5\r\6\r\7\r\8/g
+
+unique1
+unique2
+unique3
+unique4
+unique5
+unique6
+unique7
+unique8
+unique9                    unique10                                  unique11   unique12  unique13  unique14   unique15                   unique16
+
+:%s/\n\(.*\n.*\n.*\n.*\n.*\n.*\n.*\n\)\(unique9\)/\2\r\1/g | %s/\n\(.*\n.*\n.*\n.*\n.*\n.*\n\).*\(unique10\)/\2\r\1/g | %s/\n\(.*\n.*\n.*\n.*\n.*\n\).*\(unique11\)/\2\r\1/g | %s/\n\(.*\n.*\n.*\n.*\n\).*\(unique12\)/\2\r\1/g | %s/\n\(.*\n.*\n.*\n\).*\(unique13\)/\2\r\1/g | %s/\n\(.*\n.*\n\).*\(unique14\)/\2\r\1/g | %s/\n\(.*\n\).*\(unique15\)/\2\r\1/g | %s/\n.*\(unique16\)/\1/g
+
+unique1 unique9
+unique2 unique10
+unique3 unique11
+unique4 unique12
+unique5 unique13
+unique6 unique14
+unique7 unique15
+unique8 unique16
+
+Which correlates to the following:
+
+CreationDate               EightDotThreeFileName               Extension  FileName   FileSize  FileType              LastAccessed               LastModified
+YYYYMMDDHHMMSS.######+***  c:\path\to\the\files\filename#.ext  ext        filename#  ####      [letters or 1 space]  YYYYMMDDHHMMSS.######+***  YYYYMMDDHHMMSS.######
+
+:%s/\(CreationDate\)\s\+\(EightDotThreeFileName\)\s\+\(Extension\)\s\+\(FileName\)\s\+\(FileSize\)\s\+\(FileType\)\s\+\(LastAccessed\)\s\+\(LastModified\)\s*/\1\r\2\r\3\r\4\r\5\r\6\r\7\r\8/g
+
+CreationDate
+EightDotThreeFileName
+Extension
+FileName
+FileSize
+FileType
+LastAccessed
+LastModified
+YYYYMMDDHHMMSS.######+***  c:\path\to\the\files\filename#.ext  ext        filename#  ####      [letters or 1 space]  YYYYMMDDHHMMSS.######+***  YYYYMMDDHHMMSS.######
+
+:%s/\n\(.*\n.*\n.*\n.*\n.*\n.*\n.*\n\)\(\S\+ \S\+\|\S\+\)/: \2\r\1/g | %s/\n\(.*\n.*\n.*\n.*\n.*\n.*\n\)\s\{2,}.\+\\\(\S\+ \S\+\|\S\+\)/: \2\r\1/g | %s/\n\(.*\n.*\n.*\n.*\n.*\n\)\s\{2,}\(\S\+ \S\+\|\S\+\)/: \2\r\1/g | %s/\n\(.*\n.*\n.*\n.*\n\)\s\{2,}\(\S\+ \S\+\|\S\+\)/: \2\r\1/g | %s/\n\(.*\n.*\n.*\n\)\s\{2,}\(\S\+ \S\+\|\S\+\)/: \2\r\1/g | %s/\n\(.*\n.*\n\)\s\{2,}\(\S\+ \S\+\|\S\+\)/: \2\r\1/g | %s/\n\(.*\n\)\s\{2,}\(\S\+ \S\+\|\S\+\)/: \2\r\1/g | %s/\n\s\{2,}\(\S\+ \S\+\|\S\+\)/: \1/g
+
+CreationDate: YYYYMMDDHHMMSS.######+***
+EightDotThreeFileName: filename#.ext
+Extension: ext
+FileName: filename#
+FileSize: ####
+FileType: [letters or 1 space character]
+LastAccessed: YYYYMMDDHHMMSS.######+***
+LastModified: YYYYMMDDHHMMSS.######
+
+^
+similar
+v
+
+CreationDate               EightDotThreeFileName               Extension  FileName   FileSize  FileType              LastAccessed               LastModified
+YYYYMMDDHHMMSS.######+***  c:\path\to\the\files\filename#.ext  ext        filename#  ####      [letters or 1 space]  YYYYMMDDHHMMSS.######+***  YYYYMMDDHHMMSS.######
+
+:%s/\(CreationDate\)\s\+\(EightDotThreeFileName\)\s\+\(Extension\)\s\+\(FileName\)\s\+\(FileSize\)\s\+\(FileType\)\s\+\(LastAccessed\)\s\+\(LastModified\)\s*/\1\r\2\r\3\r\4\r\5\r\6\r\7\r\8/g | %s/CreationDate\n\(.*\n.*\n.*\n.*\n.*\n.*\n.*\n\)\(\S\+ \S\+\|\S\+\)/CreationDate: \2\r\1/g | %s/EightDotThreeFileName\n\(.*\n.*\n.*\n.*\n.*\n.*\n\)\s\{2,}.\+\\\(\S\+ \S\+\|\S\+\)/EightDotThreeFileName: \2\r\1/g | %s/Extension\n\(.*\n.*\n.*\n.*\n.*\n\)\s\{2,}\(\S\+ \S\+\|\S\+\)/Extension: \2\r\1/g | %s/FileName\n\(.*\n.*\n.*\n.*\n\)\s\{2,}\(\S\+ \S\+\|\S\+\)/FileName: \2\r\1/g | %s/FileSize\n\(.*\n.*\n.*\n\)\s\{2,}\(\S\+ \S\+\|\S\+\)/FileSize: \2\r\1/g | %s/FileType\n\(.*\n.*\n\)\s\{2,}\(\S\+ \S\+\|\S\+\)/FileType: \2\r\1/g | %s/LastAccessed\n\(.*\n\)\s\{2,}\(\S\+ \S\+\|\S\+\)/LastAccessed: \2\r\1/g | %s/LastModified\n\s\{2,}\(\S\+ \S\+\|\S\+\)/LastModified: \1/g
+
+CreationDate: YYYYMMDDHHMMSS.######+***
+EightDotThreeFileName: filename#.ext
+Extension: ext
+FileName: filename#
+FileSize: ####
+FileType: [letters or 1 space character]
+LastAccessed: YYYYMMDDHHMMSS.######+***
+LastModified: YYYYMMDDHHMMSS.######
+
+delete other crap
+v
+
+:%s/\(.*\n\)\{2}.*>.* h -scrcsha256\(.*\n\)\{15}//g
+:%s/.*>wmic datafile where Name=.*\\/Filename: /g
+:%s/" get CreationDate,E.*//g
+:%s/\nEverything is Ok\n\n.*>$//g
+:%s/\n\nEverything is Ok$//g
+
+^
+combined
+v
+
+See Step 3 above for the combined command.
 ````
