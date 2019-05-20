@@ -56,15 +56,20 @@ Then run
 
 Step 2. Get the unformated metadata (see Appendix A)
 
-Open CMD and run "cls"
+Open CMD
 
 Go to the directory with the files that you want to get meta data on, run "cd C:\path\to\the\files"
+
+Run "cls"
 
 Copy and paste all of those Step 1 commands into CMD to run them.
 
 Press Ctrl+A
 
-Paste the unformated metadata into Vim then run the command in Step 3.
+Paste the unformatted metadata into Vim then run the command in Step 3.
+
+Ignore this part if you don't care about how the Vim command works.
+&darr;
 
 (Not needed:
 :%s/.:\\.*7z" h -scrcsha256 \(.*\n\)\{15}//g
@@ -156,6 +161,9 @@ v
 ^
 combined
 v
+
+&uarr;
+Ignore this part if you don't care about how the Vim command works.
 
 Step 3. (referenced above) Format metadata
 
