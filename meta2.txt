@@ -1,0 +1,172 @@
+# Get metadata of files with Vim, 7zip, and CMD
+
+I don't know if this has been done before; I feel like the answer is "no". I looked up "Get metadata with Vim, 7zip, and CMD" on Google and found nothing. Why does 7zip not support MD5?
+
+Warning: Each filename must not have more than one space.
+
+(Click the "Raw" button on this web page to enable word wrapping.)
+
+Step 1. Know that you can paste Vim command mode commands in with : > Edit > Paste
+
+Step 2. Open CMD to get a list of your files. Go to the directory which contains them then run "dir|C:\Windows\System32\clip"
+
+Open Vim then paste the text that is now on the clipboard. Only add the text between "--->" and "<---" which you have customized to your files.
+
+````
+start of "file" ("1,1")---> Volume in drive D has no label.
+ Volume Serial Number is ####-####
+
+ Directory of C:\path\to\the\files
+
+mm/dd/yyyy  mm:ss _M    <DIR>          .
+mm/dd/yyyy  mm:ss _M    <DIR>          ..
+mm/dd/yyyy  mm:ss _M         #,###,### fileone.extension
+mm/dd/yyyy  mm:ss _M         #,###,### filetwo.ext
+mm/dd/yyyy  mm:ss _M         #,###,### filethree.etx
+               3 File(s)     #,###,### bytes
+               2 Dir(s)  ##,###,###,### bytes free
+<---end of "file" ("13,0")
+````
+
+Then in command mode run
+````
+:%s/\(.*\n\)\+ Directory of //g | let CurrentDir = escape(trim(execute("1p")) . "\\", "\\") | execute "normal" "4dd" |$d|$d|$d | execute "normal" "o" | %s/\d\+\/\d\+\/\d\+\s\+\d\+:\d\+\s\+\S\+\s\+\S\+\s\+//g | %s/^\(.\+\)$/\1\r\1/g | %s/^\(.\+\n.\+\)/wmic datafile where Name="C:\\\\path\\\\to\\\\the\\\\files\\\\\1/g | %s/^\(wmic datafile where Name=".:.\+\)$/\1" get CreationDate,EightDotThreeFileName,Extension,FileName,FileSize,FileType,LastAccessed,LastModified\r/g | $ | execute "normal" "dd" | %s/\n\n\(.\+\)$/\r\r"C:\\Program Files\\7-Zip\\7z" h -scrc* "\1"\r/g | let i=1 | g/C:\\\\path\\\\to\\\\the\\\\files\\\\/s//\=CurrentDir/ | let i=i+1
+````
+
+and the output would be
+
+````
+start of "file"--->wmic datafile where Name="C:\\path\\to\\the\\files\\fileone.extension" get CreationDate,EightDotThreeFileName,Extension,FileName,FileSize,FileType,LastAccessed,LastModified
+
+"C:\Program Files\7-Zip\7z" h -scrc* "fileone.extension"
+
+wmic datafile where Name="C:\\path\\to\\the\\files\\filetwo.ext" get CreationDate,EightDotThreeFileName,Extension,FileName,FileSize,FileType,LastAccessed,LastModified
+
+"C:\Program Files\7-Zip\7z" h -scrc* "filetwo.ext"
+
+wmic datafile where Name="C:\\path\\to\\the\\files\\filethree.etx" get CreationDate,EightDotThreeFileName,Extension,FileName,FileSize,FileType,LastAccessed,LastModified
+
+"C:\Program Files\7-Zip\7z" h -scrc* "filethree.etx"
+<---end of "file"
+````
+
+Run "cls" in CMD then cut and paste this into CMD.
+
+Step 3. Put in Vim
+
+Select all text in CMD and copy it into Vim.
+
+Step 4. Format metadata
+
+Run this command:
+````
+:%s/\(CreationDate\)\s\+\(EightDotThreeFileName\)\s\+\(Extension\)\s\+\(FileName\)\s\+\(FileSize\)\s\+\(FileType\)\s\+\(LastAccessed\)\s\+\(LastModified\)\s*/\1\r\2\r\3\r\4\r\5\r\6\r\7\r\8/g | %s/CreationDate\n\(.*\n.*\n.*\n.*\n.*\n.*\n.*\n\)\(\S\+ \S\+\|\S\+\)/CreationDate: \2\r\1/g | %s/EightDotThreeFileName\n\(.*\n.*\n.*\n.*\n.*\n.*\n\)\s\{2,}.\+\\\(\S\+ \S\+\|\S\+\)/EightDotThreeFileName: \2\r\1/g | %s/Extension\n\(.*\n.*\n.*\n.*\n.*\n\)\s\{2,}\(\S\+ \S\+\|\S\+\)/Extension: \2\r\1/g | %s/FileName\n\(.*\n.*\n.*\n.*\n\)\s\{2,}\(\S\+ \S\+\|\S\+\)/FileName: \2\r\1/g | %s/FileSize\n\(.*\n.*\n.*\n\)\s\{2,}\(\S\+ \S\+\|\S\+\)/FileSize: \2\r\1/g | %s/FileType\n\(.*\n.*\n\)\s\{2,}\(\S\+ \S\+\|\S\+\)/FileType: \2\r\1/g | %s/LastAccessed\n\(.*\n\)\s\{2,}\(\S\+ \S\+\|\S\+\)/LastAccessed: \2\r\1/g | %s/LastModified\n\s\{2,}\(\S\+ \S\+\|\S\+\)/LastModified: \1/g | %s/.*>wmic datafile where Name=.*\\/Filename: /g | %s/" get CreationDate,E.*//g | %s/\nEverything is Ok\n//g | %s/\(.*\n\)\{2}.*>.* h -scrc\*\(.*\n\)\{5}\S\+\s\+\S\+/Filesize in other unit:/g | %s/\nCRC32    CRC64 \(.*\n\)\{8}//g | %s/\n\n/\r/g | 1,1s/\n//g | %s/^.:.\+>//g | %s/\n\n\n//g
+````
+
+[toggle show or hide with div]
+````
+^
+|
+works with output of--->
+C:\path\to\the\files>wmic datafile where Name="C:\\path\\to\\the\\files\\fileone.extension" get CreationDate,EightDotThreeFileName,Extension,FileName,FileSize,FileType,LastAccessed,LastModified
+CreationDate               EightDotThreeFileName                   Extension  FileName   FileSize  FileType              LastAccessed               LastModified
+YYYYMMDDHHMMSS.######+***  c:\path\to\the\files\fileone.extension  extension  fileone    ####      [letters or 1 space]  YYYYMMDDHHMMSS.######+***  YYYYMMDDHHMMSS.######
+
+
+C:\path\to\the\files>"C:\Program Files\7-Zip\7z" h -scrc* "fileone.extension"
+
+7-Zip 18.05 (x64) : Copyright (c) 1999-2018 Igor Pavlov : 2018-04-30
+
+Scanning
+1 file, #### bytes (## KiB)
+
+CRC32    CRC64            SHA256                                                           SHA1                                     BLAKE2sp                                                                  Size  Name
+-------- ---------------- ---------------------------------------------------------------- ---------------------------------------- ---------------------------------------------------------------- -------------  ------------
+CRC32CRC CRC64CRC64CRC64C SHA256SHA256SHA256SHA256SHA256SHA256SHA256SHA256SHA256SHA256SHA2 SHA1SHA1SHA1SHA1SHA1SHA1SHA1SHA1SHA1SHA1 BLAKE2spBLAKE2spBLAKE2spBLAKE2spBLAKE2spBLAKE2spBLAKE2spBLAKE2sp          ####  fileone.extension
+-------- ---------------- ---------------------------------------------------------------- ---------------------------------------- ---------------------------------------------------------------- -------------  ------------
+CRC32CRC CRC64CRC64CRC64C SHA256SHA256SHA256SHA256SHA256SHA256SHA256SHA256SHA256SHA256SHA2 SHA1SHA1SHA1SHA1SHA1SHA1SHA1SHA1SHA1SHA1 BLAKE2spBLAKE2spBLAKE2spBLAKE2spBLAKE2spBLAKE2spBLAKE2spBLAKE2sp          ####
+
+Size: ####
+
+CRC32  for data:              CRC32CRC
+
+CRC64  for data:              CRC64CRC64CRC64C
+
+SHA256 for data:              SHA256SHA256SHA256SHA256SHA256SHA256SHA256SHA256SHA256SHA256SHA2
+
+SHA1   for data:              SHA1SHA1SHA1SHA1SHA1SHA1SHA1SHA1SHA1SHA1
+
+BLAKE2sp for data:              BLAKE2spBLAKE2spBLAKE2spBLAKE2spBLAKE2spBLAKE2spBLAKE2spBLAKE2sp
+
+Everything is Ok
+
+C:\path\to\the\files>
+C:\path\to\the\files>wmic datafile where Name="C:\\path\\to\\the\\files\\filetwo.ext" get CreationDate,EightDotThreeFileName,Extension,FileName,FileSize,FileType,LastAccessed,LastModified
+CreationDate               EightDotThreeFileName               Extension  FileName   FileSize  FileType              LastAccessed               LastModified
+YYYYMMDDHHMMSS.######+***  c:\path\to\the\files\filetwo.ext    ext        filetwo    ####      [letters or 1 space]  YYYYMMDDHHMMSS.######+***  YYYYMMDDHHMMSS.######
+
+
+C:\path\to\the\files>"C:\Program Files\7-Zip\7z" h -scrc* filetwo.ext"
+
+7-Zip 18.05 (x64) : Copyright (c) 1999-2018 Igor Pavlov : 2018-04-30
+
+Scanning
+1 file, #### bytes (## KiB)
+
+CRC32    CRC64            SHA256                                                           SHA1                                     BLAKE2sp                                                                  Size  Name
+-------- ---------------- ---------------------------------------------------------------- ---------------------------------------- ---------------------------------------------------------------- -------------  ------------
+CRC32CRC CRC64CRC64CRC64C SHA256SHA256SHA256SHA256SHA256SHA256SHA256SHA256SHA256SHA256SHA2 SHA1SHA1SHA1SHA1SHA1SHA1SHA1SHA1SHA1SHA1 BLAKE2spBLAKE2spBLAKE2spBLAKE2spBLAKE2spBLAKE2spBLAKE2spBLAKE2sp          ####  fileone.extension
+-------- ---------------- ---------------------------------------------------------------- ---------------------------------------- ---------------------------------------------------------------- -------------  ------------
+CRC32CRC CRC64CRC64CRC64C SHA256SHA256SHA256SHA256SHA256SHA256SHA256SHA256SHA256SHA256SHA2 SHA1SHA1SHA1SHA1SHA1SHA1SHA1SHA1SHA1SHA1 BLAKE2spBLAKE2spBLAKE2spBLAKE2spBLAKE2spBLAKE2spBLAKE2spBLAKE2sp          ####
+
+Size: ####
+
+CRC32  for data:              CRC32CRC
+
+CRC64  for data:              CRC64CRC64CRC64C
+
+SHA256 for data:              SHA256SHA256SHA256SHA256SHA256SHA256SHA256SHA256SHA256SHA256SHA2
+
+SHA1   for data:              SHA1SHA1SHA1SHA1SHA1SHA1SHA1SHA1SHA1SHA1
+
+BLAKE2sp for data:              BLAKE2spBLAKE2spBLAKE2spBLAKE2spBLAKE2spBLAKE2spBLAKE2spBLAKE2sp
+
+Everything is Ok
+
+C:\path\to\the\files>
+C:\path\to\the\files>wmic datafile where Name="C:\\path\\to\\the\\files\\filethree.etx" get CreationDate,EightDotThreeFileName,Extension,FileName,FileSize,FileType,LastAccessed,LastModified
+CreationDate               EightDotThreeFileName               Extension  FileName   FileSize  FileType              LastAccessed               LastModified
+YYYYMMDDHHMMSS.######+***  c:\path\to\the\files\filethree.etx  etx        filethree  ####      [letters or 1 space]  YYYYMMDDHHMMSS.######+***  YYYYMMDDHHMMSS.######
+
+
+C:\path\to\the\files>"C:\Program Files\7-Zip\7z" h -scrc* "filethree.etx"
+
+7-Zip 18.05 (x64) : Copyright (c) 1999-2018 Igor Pavlov : 2018-04-30
+
+Scanning
+1 file, #### bytes (## KiB)
+
+CRC32    CRC64            SHA256                                                           SHA1                                     BLAKE2sp                                                                  Size  Name
+-------- ---------------- ---------------------------------------------------------------- ---------------------------------------- ---------------------------------------------------------------- -------------  ------------
+CRC32CRC CRC64CRC64CRC64C SHA256SHA256SHA256SHA256SHA256SHA256SHA256SHA256SHA256SHA256SHA2 SHA1SHA1SHA1SHA1SHA1SHA1SHA1SHA1SHA1SHA1 BLAKE2spBLAKE2spBLAKE2spBLAKE2spBLAKE2spBLAKE2spBLAKE2spBLAKE2sp          ####  fileone.extension
+-------- ---------------- ---------------------------------------------------------------- ---------------------------------------- ---------------------------------------------------------------- -------------  ------------
+CRC32CRC CRC64CRC64CRC64C SHA256SHA256SHA256SHA256SHA256SHA256SHA256SHA256SHA256SHA256SHA2 SHA1SHA1SHA1SHA1SHA1SHA1SHA1SHA1SHA1SHA1 BLAKE2spBLAKE2spBLAKE2spBLAKE2spBLAKE2spBLAKE2spBLAKE2spBLAKE2sp          ####
+
+Size: ####
+
+CRC32  for data:              CRC32CRC
+
+CRC64  for data:              CRC64CRC64CRC64C
+
+SHA256 for data:              SHA256SHA256SHA256SHA256SHA256SHA256SHA256SHA256SHA256SHA256SHA2
+
+SHA1   for data:              SHA1SHA1SHA1SHA1SHA1SHA1SHA1SHA1SHA1SHA1
+
+BLAKE2sp for data:              BLAKE2spBLAKE2spBLAKE2spBLAKE2spBLAKE2spBLAKE2spBLAKE2spBLAKE2sp
+
+Everything is Ok
+
+C:\path\to\the\files>
+C:\path\to\the\files><---
+````
+[/toggle show or hide with div]

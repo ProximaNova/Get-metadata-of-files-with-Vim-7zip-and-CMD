@@ -1,0 +1,87 @@
+# Get metadata of files with Vim, 7zip, and CMD
+
+Compatibility and requirements: On your Windows 10 system make sure that you have gvim and 7zip installed. I think this also works with Windows 7 and previous verious of Windows, but maybe not very old versions of Windows.
+
+Background: I wanted a program to get all of the metadata on files that I have and put it into a text file. A program to do that maybe already exists, but why install a new program when I can use the programs that I already have installed? Plus, I can release this software that I created myself with a GNU GPL licese; via la free open source software!
+
+Description: This program is just a text file where the first part is a description of this program and the second part is commands which can be ran in CMD which then uses various program to end up with one file which contains all of the metadata on the files in a specified directory (the current directory that CMD is in). I don't know if this has been done before; I feel like the answer is "no". Before I really created this program, I looked up "Get metadata with Vim, 7zip, and CMD" on Google and found nothing. Why does 7zip not support MD5?
+
+Warnings ("folder" means the same thing as "directory"):
+* Big problem: If the path to your current directory has a comma in it then this program will not really work.
+* Small problem: Each filename must not have two or more consecutive space characters.
+* Very small problem: This program does not work in the root directory of a Windows drive, e.g., "C:\", "D:\" (maybe this is an external hard drive), "E:\" (maybe this is a USB stick), etc.
+* Extremely small "problem": The directory which has the files that you want metadata on (and parent directory of that directory) must not have files with these filenames (regex which matches all of them - /\(!_metadata_\|\.\)\?unique_\?textfile\(file\)\?_\?namehere\(-\|.\+\)\?\.\(bat\|txt\)\(\.un\~\)\?\~\?/):
+** Parent folder:
+*** uniquetextfilenamehere.bat
+*** .uniquetextfilenamehere.bat.un
+*** uniquetextfilenamehere.bat~
+** Current directory:
+*** unique_textfilenamehere.bat
+*** uniquetextfilenamehere*.txt
+**** where the * represents any character or set of characters
+*** uniquetextfile_namehere-.txt
+*** uniquetextfilenamehere-.bat
+*** .uniquetextfilenamehere-.bat.un~
+*** uniquetextfilenamehere-.bat~
+*** .uniquetextfile_namehere-.txt.un~
+*** uniquetextfile_namehere-.txt~
+*** !_metadata_uniquetextfilefilenamehere.txt
+
+(Click the "Raw" button on this web page to enable word wrapping.)
+
+Step 1. Add Vim to your PATH variable
+
+If Vim is already in your PATH then skip this step.
+
+Temporary inferior way (less keystrokes):
+1. Open CMD
+2. Run the following command...
+   set PATH=%PATH%;
+   ...except the path to vim.exe would be after ";", so the command would actually be something like:
+   set PATH=%PATH%;C:\Program Files\Vim\vim81\;
+
+Permanent superior way (more keystrokes):
+1. Click the Windows button in the bottom left corner.
+2. Type or paste "environment variables".
+3. Click or press enter on "Edit the system environment variables".
+4. Click "Environment Variables..." (at the bottom) or press "n" to open the "Environment Variables" window.
+5. Select the variable "Path" in the "Variable" column.
+6. Click "Edit..." or press "E" to open the "Edit environment variable" window.
+7. Click "New" or press "N".
+8. Paste in the path to vim.exe, something like "C:\Program Files (x86)\Vim\vim81\".
+9. Click "OK" three times.
+
+(This step could have been avoided if Vim would add itself to PATH automatically; sadly it does not, so, sorry. Also this method does not seem to permanently add Vim to that path; after restarting the comupter it is removed.)
+
+Step 2. Go to the directory which contains the files which you want the metadata of.
+
+Something like:
+cd C:\path\to\the\files\
+
+Step 3. Get the metadata
+
+Run the following in CMD (copy and paste all of the following text, starting with "dir > ", into CMD) and you will get metadata on all of the files:
+
+dir > ../uniquetextfilenamehere.bat && gvim -c "%s/\(.*\n\)\+ Directory of //g | let CurrentDir = escape(trim(execute(\"1p\")) . \"\\\\\", \"\\\\\") | execute \"normal\" \"4dd\" | $ | execute \"normal\" \"ddddo\" | %s/\d\+\/\d\+\/\d\+\s\+\d\+:\d\+\s\+\S\+\s\+\S\+\s\+//g | %s/^\(.\+\)$/\1\r\1/g" -c "%s/^\(.\+\n.\+\)/wmic datafile where Name=\"C:\\\\path\\\\to\\\\the\\\\files\\\\\1/g" -c "%s/^\(wmic datafile where Name=\".:.\+\)$/\1\" get CreationDate,EightDotThreeFileName,Extension,FileName,FileSize,FileType,LastAccessed,LastModified\r/g ^| $d ^| %s/\n\n\(.\+\)$/\r\r\"C:\\Program Files\\7-Zip\\7z\" h -scrc* \"\1\"\r/g" -c "let i=1" -c "g/C:\\\\path\\\\to\\\\the\\\\files\\\\/s//\=CurrentDir/" -c "let i=i+1" -c "%s/$/ ^> uniquetextfilenamehere8re989er98er1234567890.txt/g" -c "%s/^^ ^> uniquetextfilenamehere8re989er98er1234567890.txt//g" -c "let j=1 ^| g/8re989er98er1234567890/s//\=j/ ^| let j=j+1" -c "wq" ../uniquetextfilenamehere.bat
+echo C:\Windows\System32\timeout 3 >> unique_textfilenamehere.bat
+echo del "..\.uniquetextfilenamehere.bat.un~" >> unique_textfilenamehere.bat
+echo del "..\uniquetextfilenamehere.bat~" >> unique_textfilenamehere.bat
+echo call ..\uniquetextfilenamehere.bat >> unique_textfilenamehere.bat
+echo C:\Windows\System32\timeout 3 >> unique_textfilenamehere.bat
+echo dir/b uniquetextfilenamehere*.txt ^> uniquetextfilenamehere-.bat >> unique_textfilenamehere.bat
+echo gvim -c "1,$s/^/type /g | 1,$s/$/ >> uniquetextfile_namehere-.txt/g | wq" uniquetextfilenamehere-.bat >> unique_textfilenamehere.bat
+echo C:\Windows\System32\timeout 3 >> unique_textfilenamehere.bat
+echo call uniquetextfilenamehere-.bat >> unique_textfilenamehere.bat
+echo C:\Windows\System32\timeout 3 >> unique_textfilenamehere.bat
+echo del ".uniquetextfilenamehere-.bat.un~" >> unique_textfilenamehere.bat
+echo del "uniquetextfilenamehere-.bat~" >> unique_textfilenamehere.bat
+echo del uniquetextfilenamehere*.txt >> unique_textfilenamehere.bat
+echo del uniquetextfilenamehere-.bat >> unique_textfilenamehere.bat
+echo gvim -c "1,$s/\(CreationDate\)\s\+\(EightDotThreeFileName\)\s\+\(Extension\)\s\+\(FileName\)\s\+\(FileSize\)\s\+\(FileType\)\s\+\(LastAccessed\)\s\+\(LastModified\)\s*/\1\r\2\r\3\r\4\r\5\r\6\r\7\r\8/g | 1,$s/CreationDate\n\(.*\n.*\n.*\n.*\n.*\n.*\n.*\n\)\(\S\+ \S\+\|\S\+\)/CreationDate: \2\r\1/g | 1,$s/EightDotThreeFileName\n\(.*\n.*\n.*\n.*\n.*\n.*\n\)\s\{2,}.\+\\\(\(\S\+ \?\(\S\+\)\?\)\+\)\(\s\{2,}\)/EightDotThreeFileName: \2\r\1\5/g | 1,$s/Extension\n\(.*\n.*\n.*\n.*\n.*\n\)\s\{2,}\(\(\S\+ \?\(\S\+\)\?\)\+\)\(\s\{2,}\)/Extension: \2\r\1\5/g | 1,$s/FileName\n\(.*\n.*\n.*\n.*\n\)\s\{2,}\(\(\S\+ \?\(\S\+\)\?\)\+\)\(\s\{2,}\)/FileName: \2\r\1\5/g | 1,$s/FileSize\n\(.*\n.*\n.*\n\)\s\{2,}\(\S\+ \S\+\|\S\+\)/FileSize: \2\r\1/g | 1,$s/FileType\n\(.*\n.*\n\)\s\{2,}\(\(\S\+ \?\(\S\+\)\?\)\+\)\(\s\{2,}\)/FileType: \2\r\1\5/g | 1,$s/LastAccessed\n\(.*\n\)\s\{2,}\(\S\+ \S\+\|\S\+\)/LastAccessed: \2\r\1/g | 1,$s/LastModified\n\s\{2,}\(\S\+ \S\+\|\S\+\)/LastModified: \1/g" -c "1,$s/\nEverything is Ok//g | 1,$s/\n7-Zip.\+:.\+:.\+\n\nScanning\n\d\+\s\+\S\+/Filesize in other unit:/g | 1,$s/\nCRC32    CRC64 \(.*\n\)\{2}\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+\S\+\s\+//g | 1,$s/\n--------.\+\n.\+\n\n.\+//g | 1,$s/\(CreationDate: .\+\n.\+\n.\+\n.\+\n.\+\n.\+\n.\+\n.\+\n.\+\n\)\(.\+\n\)/Filename: \2\1/g | 1,$s/\n\n/\r/g | 2,$s/^Filename: /\rFilename: /g | $d | wq" uniquetextfile_namehere-.txt >> unique_textfilenamehere.bat
+echo C:\Windows\System32\timeout 3 >> unique_textfilenamehere.bat
+echo del ".uniquetextfile_namehere-.txt.un~" >> unique_textfilenamehere.bat
+echo del "uniquetextfile_namehere-.txt~" >> unique_textfilenamehere.bat
+echo rename uniquetextfile_namehere-.txt !_metadata_uniquetextfilefilenamehere.txt >> unique_textfilenamehere.bat
+echo del "..\uniquetextfilenamehere.bat" >> unique_textfilenamehere.bat
+echo del unique_textfilenamehere.bat >> unique_textfilenamehere.bat
+unique_textfilenamehere.bat
